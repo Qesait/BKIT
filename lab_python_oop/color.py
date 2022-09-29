@@ -1,4 +1,3 @@
-
 class FigureColor:
     """
     Класс «Цвет фигуры»
