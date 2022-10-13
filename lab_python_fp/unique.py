@@ -1,3 +1,6 @@
+from lab_python_fp.gen_random import gen_random
+
+
 class Unique(object):
     def __init__(self, items, **kwargs):
         self.ignore_case = kwargs.get('ignore_case', False)
@@ -6,12 +9,7 @@ class Unique(object):
 
     def __next__(self):
         for current in self.iter:
-            if self.ignore_case:
-                try:
-                    current = current.lower()
-                except AttributeError:
-                    pass
-            if current not in self.used:
+            if (current.lower() if self.ignore_case else current) not in self.used:
                 self.used.add(current)
                 return current
         raise StopIteration
@@ -23,10 +21,9 @@ class Unique(object):
 if __name__ == '__main__':
     data = [
         [1, 1, 1, 1, 1, 2, 2, 2, 2, 2],
-        range(1, 10),
+        gen_random(10, 1, 3),
         ['a', 'A', 'b', 'B', 'a', 'A', 'b', 'B']
     ]
     for one in data:
         print(list(Unique(one)))
-    for one in data:
-        print(list(Unique(one, ignore_case=True)))
+    print(list(Unique(data[-1], ignore_case=True)))

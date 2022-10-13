@@ -10,14 +10,14 @@ class cm_timer_1:
         self.start = perf_counter()
 
     def __exit__(self, exp_type, exp_value, traceback):
-        print('time: {:.1f}'.format(perf_counter() - self.start))
+        print('time: {:.3f}'.format(perf_counter() - self.start))
 
 
 @contextmanager
 def cm_timer_2():
     start = perf_counter()
     yield
-    print('time: {:.1f}'.format(perf_counter() - start))
+    print('time: {:.3f}'.format(perf_counter() - start))
 
 
 if __name__ == '__main__':

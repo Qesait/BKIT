@@ -4,12 +4,12 @@ def print_result(func):
     def new_func(*args, **kwargs):
         print(original_func.__name__)
         result = original_func(*args, **kwargs)
-        if isinstance(result, list):
-            for item in result:
-                print(item)
-        elif isinstance(result, dict):
+        if isinstance(result, dict):
             for key, item in result.items():
                 print(f'{key} = {item}')
+        elif isinstance(result, list):
+            for item in result:
+                print(item)
         else:
             print(result)
         return result
