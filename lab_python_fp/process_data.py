@@ -7,7 +7,7 @@ from lab_python_fp.print_result import print_result
 from lab_python_fp.cm_timer import cm_timer_1
 
 
-path = r'C:\Users\kuzva\PycharmProjects\BKIT\data_light.json'
+path = r'\data_light.json'
 
 
 with open(path, encoding='UTF-8') as f:
@@ -21,7 +21,7 @@ def f1(arg):
 
 @print_result
 def f2(arg):
-    return list(field([{profession[:11].lower(): profession} for profession in arg], 'программист'))
+    return list(filter(lambda s: s[:11].lower() == 'программист', arg))
 
 
 @print_result
