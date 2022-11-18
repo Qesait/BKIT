@@ -36,21 +36,9 @@ def test_4():
     return [1, 2]
 
 
-@print_result
-def double_int(x):
-    return x * 2
-
-
-@print_result
-def multiply_list(l, k=2):
-    return l * k
-
-
 if __name__ == '__main__':
     print('!!!!!!!!')
     test_1()
     test_2()
     test_3()
     test_4()
-    double_int(5)
-    multiply_list([1, 2], k=3)

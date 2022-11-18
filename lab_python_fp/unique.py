@@ -19,11 +19,7 @@ class Unique(object):
 
 
 if __name__ == '__main__':
-    data = [
-        [1, 1, 1, 1, 1, 2, 2, 2, 2, 2],
-        gen_random(10, 1, 3),
-        ['a', 'A', 'b', 'B', 'a', 'A', 'b', 'B']
-    ]
-    for one in data:
-        print(list(Unique(one)))
-    print(list(Unique(data[-1], ignore_case=True)))
+    print(list(Unique([1, 1, 1, 1, 1, 2, 2, 2, 2, 2])))
+    print(list(Unique(gen_random(10, 1, 3))))
+    print(list(Unique(['a', 'A', 'b', 'B', 'a', 'A', 'b', 'B'])))
+    print(list(Unique(['a', 'A', 'b', 'B', 'a', 'A', 'b', 'B'], ignore_case=True)))

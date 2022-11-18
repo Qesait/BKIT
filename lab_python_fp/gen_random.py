@@ -7,5 +7,4 @@ def gen_random(num_count, begin, end):
 
 
 if __name__ == '__main__':
-    print(list(gen_random(5, 1, 3)))
-    print(list(gen_random(5, -5, 5)))
+    pass
