@@ -16,8 +16,3 @@ def lucky_numbers():
         else:
             yield i
             sequence.append([i, len(sequence) + 2])
-
-
-if __name__ == '__main__':
-    a = list(islice(lucky_numbers(), 10))
-    print(' '.join(map(str, a)))
