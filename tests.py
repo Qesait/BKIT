@@ -30,7 +30,7 @@ class TestLuckyNumbers(unittest.TestCase):
         result = [1, 3, 7, 9, 13, 15, 21, 25, 31, 33]
         numbers = lucky_numbers()
         for i in range(10):
-            self.assertEqual(result[i], numbers.__next__())
+            self.assertEqual(result[i], next(numbers))
 
 
 if __name__ == '__main__':
