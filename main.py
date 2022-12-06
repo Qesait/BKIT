@@ -12,6 +12,7 @@ TOKEN = os.environ.get('TOKEN')
 def get_roots(a, b, c):
     result = []
 
+    # Частный случай квадратного уравнения
     if a == 0.0:
         if b != 0.0:
             root = - c / b
@@ -21,6 +22,7 @@ def get_roots(a, b, c):
                 result.append(0)
         return result
 
+    # Общий случай решения биквадратного уравнения
     D = b * b - 4 * a * c
 
     if c == 0:
@@ -41,6 +43,47 @@ def get_roots(a, b, c):
     return result
 
 
+def calc_result(chat_id):
+    # Загрузка коэффициентов из БД
+    a = float(dbworker.get(dbworker.make_key(chat_id, dbworker.States.STATE_COEFFICIENT_A.value)))
+    b = float(dbworker.get(dbworker.make_key(chat_id, dbworker.States.STATE_COEFFICIENT_B.value)))
+    c = float(dbworker.get(dbworker.make_key(chat_id, dbworker.States.STATE_COEFFICIENT_C.value)))
+
+    # Составить биквадратное уравнение
+    result = 'Биквадратное уравнение: '
+    if a:
+        result += str(a).rstrip('0').rstrip('.') + 'x⁴'
+    if b:
+        if b > 0 and a:
+            result += '+'
+        result += str(b).rstrip('0').rstrip('.') + 'x²'
+    if c:
+        if c > 0 and (a or b):
+            result += '+'
+        result += str(c).rstrip('0').rstrip('.')
+    elif not a and not b:
+        result += '0'
+    result += '=0\n'
+
+    # Вычисление корней
+    roots = get_roots(a, b, c)
+
+    # Дописать решение
+    match len(roots):
+        case 0:
+            result += 'Не имеет корней'
+        case 1:
+            result += 'Имеет один корень:\n{}'.format(*roots)
+        case 2:
+            result += 'Имеет два корня:\n{}\n{}'.format(*roots)
+        case 3:
+            result += 'Имеет три корня:\n{}\n{}\n{}'.format(*roots)
+        case 4:
+            result += 'Имеет четыре корня:\n{}\n{}\n{}\n{}'.format(*roots)
+
+    return result
+
+
 # Создание бота
 bot = telebot.TeleBot(TOKEN)
 
@@ -48,92 +91,47 @@ bot = telebot.TeleBot(TOKEN)
 # Начало диалога
 @bot.message_handler(commands=['start'])
 def cmd_start(message):
-    bot.send_message(message.chat.id, 'Я биквадратные уравнения!')
-    dbworker.set(dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE),
-                 dbworker.States.STATE_FIRST_COEFFICIENT.value)
-    bot.send_message(message.chat.id, 'Введите первый коэффициент')
+    bot.send_message(message.chat.id, 'Я решаю биквадратные уравнения!\nОни выглядят вот так: Ax⁴+Bx²+C=0')
+    current_state = dbworker.States.STATE_COEFFICIENT_A
+    dbworker.set(dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE), current_state.value)
+    bot.send_message(message.chat.id, f'Введите коэффициент {chr(current_state.value + 65)}')
 
 
 # По команде /reset будем сбрасывать состояния, возвращаясь к началу диалога
 @bot.message_handler(commands=['reset'])
 def cmd_reset(message):
     bot.send_message(message.chat.id, 'Сбрасываем результаты предыдущего ввода.')
-    dbworker.set(dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE),
-                 dbworker.States.STATE_FIRST_COEFFICIENT.value)
-    bot.send_message(message.chat.id, 'Введите первый коэффициент')
+    current_state = dbworker.States.STATE_COEFFICIENT_A
+    dbworker.set(dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE), current_state.value)
+    bot.send_message(message.chat.id, f'Введите коэффициент {chr(current_state.value + 65)}')
 
 
-# Обработка первого коэффициента
-@bot.message_handler(func=lambda message: dbworker.get(
-    dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE)) == dbworker.States.STATE_FIRST_COEFFICIENT.value)
-def first_num(message):
+# Считывание коэффициента
+@bot.message_handler()
+def coefficient(message):
+    # Получаем текущее состояние
+    current_state = dbworker.States(int(dbworker.get(dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE))))
+
     text = message.text
     if not text.lstrip("-").isdigit():
         # Состояние не изменяется, выводится сообщение об ошибке
         bot.send_message(message.chat.id, 'Пожалуйста введите число!')
         return
-    else:
-        bot.send_message(message.chat.id, f'Вы ввели первый коэффициент {text}')
-        # Меняем текущее состояние
-        dbworker.set(dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE),
-                     dbworker.States.STATE_SECOND_COEFFICIENT.value)
-        # Сохраняем первое число
-        dbworker.set(dbworker.make_key(message.chat.id, dbworker.States.STATE_FIRST_COEFFICIENT.value), text)
-        bot.send_message(message.chat.id, 'Введите второй коэффициент')
 
+    # Сохраняем полученное значение
+    # bot.send_message(message.chat.id, f'Вы ввели коэффициент {chr(current_state.value + 65)}')
+    dbworker.set(dbworker.make_key(message.chat.id, current_state.value), text)
 
-# Обработка второго коэффициента
-@bot.message_handler(func=lambda message: dbworker.get(
-    dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE)) == dbworker.States.STATE_SECOND_COEFFICIENT.value)
-def second_num(message):
-    text = message.text
-    if not text.lstrip("-").isdigit():
-        # Состояние не изменяется, выводится сообщение об ошибке
-        bot.send_message(message.chat.id, 'Пожалуйста введите число!')
-        return
-    else:
-        bot.send_message(message.chat.id, f'Вы ввели второй коэффициент {text}')
-        # Меняем текущее состояние
-        dbworker.set(dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE),
-                     dbworker.States.STATE_THIRD_COEFFICIENT.value)
-        # Сохраняем первое число
-        dbworker.set(dbworker.make_key(message.chat.id, dbworker.States.STATE_SECOND_COEFFICIENT.value), text)
-        bot.send_message(message.chat.id, 'Введите третий коэффициент')
+    # Если есть все три коэффициента, то решаем биквадратное уравнение
+    try:
+        current_state = next(current_state)
+    except StopIteration:
+        bot.send_message(message.chat.id, calc_result(message.chat.id))
+        current_state = dbworker.States.STATE_COEFFICIENT_A
 
-
-# Обработка третьего коэффициента
-@bot.message_handler(func=lambda message: dbworker.get(
-    dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE)) == dbworker.States.STATE_THIRD_COEFFICIENT.value)
-def second_num(message):
-    text = message.text
-    if not text.lstrip("-").isdigit():
-        # Состояние не изменяется, выводится сообщение об ошибке
-        bot.send_message(message.chat.id, 'Пожалуйста введите число!')
-        return
-    else:
-        bot.send_message(message.chat.id, f'Вы ввели третий коэффициент {text}')
-
-        a = float(dbworker.get(dbworker.make_key(message.chat.id, dbworker.States.STATE_FIRST_COEFFICIENT.value)))
-        b = float(dbworker.get(dbworker.make_key(message.chat.id, dbworker.States.STATE_SECOND_COEFFICIENT.value)))
-        c = float(text)
-
-        roots = get_roots(a, b, c)
-        result = 'Нет корней'
-        match len(roots):
-            case 1:
-                result = 'Один корень:\n{}'.format(*roots)
-            case 2:
-                result = 'Два корня:\n{}\n{}'.format(*roots)
-            case 4:
-                result = 'Четыре корня:\n{}\n{}\n{}\n{}'.format(*roots)
-
-        bot.send_message(message.chat.id, result)
-
-        # Меняем текущее состояние
-        dbworker.set(dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE),
-                     dbworker.States.STATE_FIRST_COEFFICIENT.value)
-        # Выводим сообщение
-        bot.send_message(message.chat.id, 'Введите первый коэффициент')
+    # Переходим к следующему состоянию
+    dbworker.set(dbworker.make_key(message.chat.id, dbworker.CURRENT_STATE), current_state.value)
+    bot.send_message(message.chat.id, f'Введите коэффициент {chr(current_state.value + 65)}')
 
 
 if __name__ == '__main__':

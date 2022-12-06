@@ -9,11 +9,16 @@ CURRENT_STATE = "CURRENT_STATE"
 
 
 # Состояния автомата
-class States(Enum):
-    STATE_START = "STATE_START"  # Начало нового диалога
-    STATE_FIRST_COEFFICIENT = "STATE_FIRST_COEFFICIENT"
-    STATE_SECOND_COEFFICIENT = "STATE_SECOND_COEFFICIENT"
-    STATE_THIRD_COEFFICIENT = "STATE_THIRD_COEFFICIENT"
+class States(Enum):  # Начало нового диалога
+    STATE_COEFFICIENT_A = 0
+    STATE_COEFFICIENT_B = 1
+    STATE_COEFFICIENT_C = 2
+
+    def __next__(self):
+        try:
+            return States(self.value + 1)
+        except ValueError:
+            raise StopIteration
 
 
 # Чтение значения
@@ -23,7 +28,7 @@ def get(key):
             return db[key].decode()
         except KeyError:
             # в случае ошибки значение по умолчанию - начало диалога
-            return States.S_START.value
+            return States.next_state()
 
 
 # Запись значения
@@ -41,3 +46,18 @@ def set(key, value):
 def make_key(chatid, keyid):
     res = str(chatid) + '__' + str(keyid)
     return res
+
+
+
+
+
+
+
+if __name__ == '__main__':
+    s = States.STATE_COEFFICIENT_A
+    print(s)
+    s = next(s)
+    print(s)
+    print(chr(s.value + 65))
+    s2 = States(s.value)
+    print(s2)
