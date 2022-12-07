@@ -1,5 +1,5 @@
-from vedis import Vedis
 from enum import Enum
+from vedis import Vedis
 
 
 # Файл базы данных Vedis
@@ -8,8 +8,8 @@ db_file = "db.vdb"
 CURRENT_STATE = "CURRENT_STATE"
 
 
-# Состояния автомата
-class States(Enum):  # Начало нового диалога
+class States(Enum):
+    """Состояния автомата"""
     STATE_COEFFICIENT_A = 0
     STATE_COEFFICIENT_B = 1
     STATE_COEFFICIENT_C = 2
@@ -21,18 +21,18 @@ class States(Enum):  # Начало нового диалога
             raise StopIteration
 
 
-# Чтение значения
 def get(key):
+    """Чтение значения"""
     with Vedis(db_file) as db:
         try:
             return db[key].decode()
         except KeyError:
             # в случае ошибки значение по умолчанию - начало диалога
-            return States.next_state()
+            return States(0)
 
 
-# Запись значения
 def set(key, value):
+    """Запись значения"""
     with Vedis(db_file) as db:
         try:
             db[key] = value
@@ -42,22 +42,7 @@ def set(key, value):
             return False
 
 
-# Создание ключа для записи и чтения
 def make_key(chatid, keyid):
+    """Создание ключа для записи и чтения"""
     res = str(chatid) + '__' + str(keyid)
     return res
-
-
-
-
-
-
-
-if __name__ == '__main__':
-    s = States.STATE_COEFFICIENT_A
-    print(s)
-    s = next(s)
-    print(s)
-    print(chr(s.value + 65))
-    s2 = States(s.value)
-    print(s2)
