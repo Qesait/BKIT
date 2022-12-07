@@ -53,7 +53,7 @@ def calc_result(a, b, c):
     result += '=0\n'
 
     # Вычисление корней
-    roots = get_roots(a, b, c)
+    roots = [str(root).rstrip('0').rstrip('.') for root in get_roots(a, b, c)]
 
     # Дописать решение
     match len(roots):

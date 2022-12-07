@@ -38,7 +38,6 @@ def set(key, value):
             db[key] = value
             return True
         except:
-            # тут желательно как-то обработать ситуацию
             return False
 
 
